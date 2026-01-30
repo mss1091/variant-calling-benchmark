@@ -16,28 +16,16 @@ This project performs a comprehensive comparative analysis of variant calling pi
 project/
 ├── data/                          # Input data files
 │   ├── reference/                 # Reference genome (hg38)
-│   ├── phase1/                    # Germline analysis data
-│   │   ├── bam/                   # NA12878 BAM files
-│   │   ├── fastq/                 # FASTQ files (if needed)
-│   │   └── truth_vcf/             # GIAB truth set VCF
-│   └── phase2/                    # Somatic analysis data
-│       ├── bam/                   # Tumor-normal BAM pairs
-│       └── truth_vcf/             # High-confidence somatic truth set
+│   ├── phase1/                    # Germline analysis data (NA12878)
+│   └── phase2/                    # Somatic analysis data (tumor-normal pairs)
 │
 ├── bed_files/                     # BED files for filtering
 │   ├── phase1/                    # Phase 1 BED files
 │   └── phase2/                    # Phase 2 BED files
 │
 ├── scripts/                       # Analysis scripts
-│   ├── phase1/
-│   │   ├── cosap/                 # COSAP pipeline scripts
-│   │   ├── sarek/                 # Sarek configuration files
-│   │   ├── create_visualizations.py  # Generate Phase 1 visualizations
-│   │   └── create_presentation.py   # Generate Phase 1 presentation
-│   └── phase2/
-│       ├── bwa/                   # BWA mapper pipelines
-│       ├── bowtie/                # Bowtie mapper pipelines
-│       └── create_visualizations.py  # Generate Phase 2 visualizations
+│   ├── phase1/                    # Germline variant calling scripts
+│   └── phase2/                    # Somatic variant calling scripts
 │
 ├── commands/                      # Pipeline execution scripts
 │   ├── phase1/                    # Phase 1 command scripts
@@ -48,16 +36,10 @@ project/
 │   └── phase2/                    # Phase 2 unfiltered VCFs
 │
 ├── results/                       # Final analysis results
-│   ├── phase1/
-│   │   ├── filtered/              # Filtered VCF files
-│   │   ├── metrics/               # Performance metrics (TP, FP, FN, Precision, Recall, F1)
-│   │   └── visualizations/        # Generated visualization images
-│   └── phase2/
-│       ├── filtered/              # Filtered VCF files
-│       ├── metrics/               # Performance metrics
-│       └── visualizations/        # Generated visualization images
+│   ├── phase1/                    # Phase 1 filtered VCFs, metrics, visualizations
+│   └── phase2/                    # Phase 2 filtered VCFs, metrics, visualizations
 │
-└── setup_cosap.sh                # Environment setup script
+└── setup_cosap.sh                 # Environment setup script
 ```
 
 ## Phase 1: Germline Variant Calling
@@ -81,20 +63,6 @@ project/
 - Filtering counts (variant reduction at each step)
 - Performance metrics (TP, FP, FN, Precision, Recall, F1-Score)
 - Similarity matrix (Jaccard similarity between pipelines)
-
-### Running Phase 1 Analysis
-
-```bash
-# Activate environment
-source setup_cosap.sh
-
-# Generate visualizations
-cd scripts/phase1
-python3 create_visualizations.py
-
-# Generate presentation
-python3 create_presentation.py
-```
 
 ## Phase 2: Somatic Variant Calling
 
@@ -121,17 +89,6 @@ python3 create_presentation.py
 - Filtering counts (variant reduction at each step)
 - Performance metrics (TP, FP, FN, Precision, Recall, F1-Score)
 - Similarity matrix (Jaccard similarity between pipelines)
-
-### Running Phase 2 Analysis
-
-```bash
-# Activate environment
-source setup_cosap.sh
-
-# Generate visualizations
-cd scripts/phase2
-python3 create_visualizations.py
-```
 
 ## Key Findings
 
@@ -169,33 +126,9 @@ python3 create_visualizations.py
 - **BWA** / **Bowtie** (alignment)
 - **bcftools** (VCF manipulation)
 
-### Python Packages
-```bash
-pip install numpy matplotlib seaborn
-```
-
-## Environment Setup
-
-```bash
-# Run setup script
-source setup_cosap.sh
-
-# Or manually activate conda environment
-conda activate cosap
-```
-
-## Output Locations
-
-- **Visualizations**: `results/phase*/visualizations/`
-- **Filtered VCFs**: `results/phase*/filtered/`
-- **Metrics**: `results/phase*/metrics/`
-
-## Notes
-
-- All pipeline commands are saved in `commands/` for reproducibility
-- Visualizations are generated as high-resolution PNG files (300 DPI)
-- Metrics are calculated using `bcftools isec` for accurate TP/FP/FN classification
-
 ## Contact
 
-For questions or issues, refer to the project documentation or contact the course instructor.
+For questions or issues, please contact:
+- **Mehmet Sait Sever**: severm21@itu.edu.tr
+- **Tunahan Geçit**: gecitt21@itu.edu.tr
+- Or the course instructors at Istanbul Technical University

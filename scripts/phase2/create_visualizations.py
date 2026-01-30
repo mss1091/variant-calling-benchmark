@@ -60,10 +60,11 @@ PIPELINES = {
 }
 
 TRUTH_VCF = DATA_DIR / "truth_vcf" / "high-confidence_sSNV_exome_filtered.vcf.gz"
-PIPELINE_COLORS = {"P1": "#4472C4", "P2": "#ED7D31", "P3": "#70AD47", "P4": "#7030A0",
-                   "P5": "#5B9BD5", "P6": "#FFC000", "P7": "#A5A5A5", "P8": "#264478"}
+PIPELINE_COLORS = {
+    "P1": "#6BAED6", "P2": "#FD8D3C", "P3": "#78C679", "P4": "#9E9AC8",
+    "P5": "#969696", "P6": "#FFC000", "P7": "#08519C", "P8": "#54278F"
+}
 PIPELINE_COLOR_LIST = [PIPELINE_COLORS[f"P{i}"] for i in range(1, 9)]
-METRIC_COLORS = {"TP": "#70AD47", "FP": "#C55A11", "FN": "#FFC000"}
 
 
 def count_variants(vcf_path):
@@ -125,7 +126,7 @@ def get_metrics_from_files():
 def visualization_1_filtering_counts():
     print("Creating Visualization 1: Variant counts after filtering...")
     
-    filtering_steps = ["Raw VCF", "After Ploidy Fix", "After Exome Filter", "After HC Filter", "Final PASS"]
+    filtering_steps = ["Raw VCF\n(After Calling)", "After Ploidy\nFix", "After Exome\nFilter", "After HC\nFilter", "Final PASS\nFilter"]
     pipeline_counts_data = {
         "P1": [34914, 34914, 25016, 25016, 12020],
         "P2": [218356, 218356, 155541, 155541, 23368],
@@ -138,21 +139,24 @@ def visualization_1_filtering_counts():
     }
     
     fig, ax = plt.subplots(figsize=(16, 8))
-    x = np.arange(len(filtering_steps)) if HAS_NUMPY else list(range(len(filtering_steps)))
+    x = np.arange(len(filtering_steps))
     width = 0.1
     
     for i, pid in enumerate([f"P{j}" for j in range(1, 9)]):
         counts = pipeline_counts_data[pid]
-        positions = x + i*width if HAS_NUMPY else [pos + i*width for pos in x]
-        ax.bar(positions, counts, width, label=pid, color=PIPELINE_COLOR_LIST[i], alpha=0.8)
+        positions = x + i*width
+        bars = ax.bar(positions, counts, width, label=pid, color=PIPELINE_COLOR_LIST[i])
+        for bar, count in zip(bars, counts):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1500, 
+                   f'{count:,}', ha='center', va='bottom', fontsize=6, rotation=90)
     
     ax.set_xlabel('Filtering Step', fontweight='bold')
     ax.set_ylabel('Variant Count', fontweight='bold')
     ax.set_title('Variant Counts After Each Filtering Step', fontweight='bold')
-    ax.set_xticks(x + width * 3.5 if HAS_NUMPY else [pos + width * 3.5 for pos in x])
-    ax.set_xticklabels(filtering_steps, rotation=15, ha='right')
-    ax.legend(title='Pipeline', ncol=2)
-    ax.grid(axis='y', alpha=0.3)
+    ax.set_xticks(x + width * 3.5)
+    ax.set_xticklabels(filtering_steps)
+    ax.legend(title='Pipeline', ncol=2, loc='upper right')
+    ax.set_ylim(0, 250000)
     
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "1_filtering_counts.png", dpi=300, bbox_inches='tight')
@@ -166,7 +170,7 @@ def visualization_2_metrics():
     metrics = get_metrics_from_files()
     pipeline_ids = [f"P{i}" for i in range(1, 9)]
     
-    fig, ax = plt.subplots(figsize=(14, 6))
+    fig, ax = plt.subplots(figsize=(12, 5))
     ax.axis('tight')
     ax.axis('off')
     
@@ -174,13 +178,12 @@ def visualization_2_metrics():
     for pid in pipeline_ids:
         m = metrics[pid]
         table_data.append([
-            pid, PIPELINES[pid]["name"],
-            f"{m['TP']:,}", f"{m['FP']:,}", f"{m['FN']:,}",
+            pid, f"{m['TP']}", f"{m['FP']}", f"{m['FN']}",
             f"{m['Precision']:.2f}", f"{m['Recall']:.2f}", f"{m['F1']:.2f}"
         ])
     
     table = ax.table(cellText=table_data,
-                     colLabels=['ID', 'Pipeline', 'TP', 'FP', 'FN', 'Prec', 'Rec', 'F1'],
+                     colLabels=['Pipeline', 'TP', 'FP', 'FN', 'Precision', 'Recall', 'F1'],
                      cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
     table.auto_set_font_size(False)
     table.set_fontsize(10)
@@ -189,65 +192,48 @@ def visualization_2_metrics():
     for i, pid in enumerate(pipeline_ids):
         table[(i+1, 0)].set_facecolor(PIPELINE_COLOR_LIST[i])
         table[(i+1, 0)].set_text_props(weight='bold', color='white')
-        for j in range(1, 8):
+        for j in range(1, 7):
             table[(i+1, j)].set_facecolor('#f0f0f0')
     
     ax.set_title('Performance Metrics Summary Table', fontweight='bold', pad=20)
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "2e_summary_table.png", dpi=300, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "2_summary_table.png", dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"  Saved: {OUTPUT_DIR / '2e_summary_table.png'}")
+    print(f"  Saved: {OUTPUT_DIR / '2_summary_table.png'}")
 
 
 def visualization_3_similarity_matrix():
     print("Creating Visualization 3: Pipeline Similarity Matrix...")
     
-    pipeline_ids = [f"P{i}" for i in range(1, 9)]
+    pipeline_order = ["P6", "P8", "P2", "P4", "P1", "P5", "P3", "P7"]
     pipeline_variants = {}
     
-    for pid in pipeline_ids:
+    for pid in pipeline_order:
         variants = read_vcf_variants(PIPELINES[pid]["final_vcf"])
         pipeline_variants[pid] = variants
         print(f"  {pid}: {len(variants)} variants")
     
-    n = len(pipeline_ids)
-    if HAS_NUMPY:
-        similarity_matrix = np.zeros((n, n))
-    else:
-        similarity_matrix = [[0.0] * n for _ in range(n)]
+    n = len(pipeline_order)
+    similarity_matrix = np.zeros((n, n))
     
-    for i, pid1 in enumerate(pipeline_ids):
-        for j, pid2 in enumerate(pipeline_ids):
+    for i, pid1 in enumerate(pipeline_order):
+        for j, pid2 in enumerate(pipeline_order):
             set1, set2 = pipeline_variants[pid1], pipeline_variants[pid2]
             intersection = len(set1 & set2)
             union = len(set1 | set2)
             similarity = intersection / union if union > 0 else 1.0
-            if HAS_NUMPY:
-                similarity_matrix[i, j] = similarity
-            else:
-                similarity_matrix[i][j] = similarity
+            similarity_matrix[i, j] = similarity
     
     fig, ax = plt.subplots(figsize=(12, 10))
     
-    if HAS_SEABORN and HAS_NUMPY:
-        annot = [[f'{similarity_matrix[i, j]:.2f}' for j in range(n)] for i in range(n)]
-        labels = [f"{pid}\n{PIPELINES[pid]['caller']}" for pid in pipeline_ids]
-        sns.heatmap(similarity_matrix, annot=annot, fmt='', cmap='YlOrRd',
-                   vmin=0, vmax=1, xticklabels=labels, yticklabels=labels,
-                   cbar_kws={'label': 'Jaccard Similarity'}, ax=ax, square=True)
-        plt.xticks(rotation=45, ha='right')
-        plt.yticks(rotation=0)
-    else:
-        im = ax.imshow(similarity_matrix, cmap='YlOrRd', vmin=0, vmax=1)
-        ax.set_xticks(range(n))
-        ax.set_yticks(range(n))
-        ax.set_xticklabels(pipeline_ids)
-        ax.set_yticklabels(pipeline_ids)
-        for i in range(n):
-            for j in range(n):
-                val = similarity_matrix[i][j] if not HAS_NUMPY else similarity_matrix[i, j]
-                ax.text(j, i, f'{val:.2f}', ha='center', va='center', fontweight='bold')
-        plt.colorbar(im, ax=ax, label='Jaccard Similarity')
+    annot = [[f'{similarity_matrix[i, j]:.2f}' for j in range(n)] for i in range(n)]
+    labels = [f"{pid}\n{PIPELINES[pid]['workflow']} + {PIPELINES[pid]['caller']}" for pid in pipeline_order]
+    sns.heatmap(similarity_matrix, annot=annot, fmt='', cmap='YlOrRd',
+               vmin=0, vmax=1, xticklabels=labels, yticklabels=labels,
+               cbar_kws={'label': 'Jaccard Similarity'}, ax=ax, square=True,
+               linewidths=0.5, linecolor='white')
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
     
     ax.set_xlabel('Pipeline', fontweight='bold')
     ax.set_ylabel('Pipeline', fontweight='bold')
