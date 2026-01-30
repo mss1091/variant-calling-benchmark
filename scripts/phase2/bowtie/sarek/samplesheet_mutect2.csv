@@ -1,0 +1,3 @@
+patient,status,sample,lane,bam,bai
+patient1,1,tumor,1,/home/mssever/Desktop/blg348e/project/data/phase2/bam/bowtie/unprocessed_tumor_bowtie.sorted.bam,/home/mssever/Desktop/blg348e/project/data/phase2/bam/bowtie/unprocessed_tumor_bowtie.sorted.bam.bai
+patient1,0,normal,1,/home/mssever/Desktop/blg348e/project/data/phase2/bam/bowtie/unprocessed_normal_bowtie.sorted.bam,/home/mssever/Desktop/blg348e/project/data/phase2/bam/bowtie/unprocessed_normal_bowtie.sorted.bam.bai

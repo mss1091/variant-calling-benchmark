@@ -1,0 +1,39 @@
+// Sarek Nextflow configuration for Phase 2 (Somatic) - Bowtie alignment - Strelka2
+// Optimized for speed: using more CPU cores for parallelization
+process {
+    withLabel: 'high_memory' {
+        memory = '16.GB'
+    }
+    withLabel: 'high_cpu' {
+        cpus = 12
+    }
+    // Strelka2-specific configuration
+    withName: '.*STRELKA.*' {
+        cpus = 1
+        memory = '8.GB'
+    }
+}
+
+params {
+    // Input
+    input = '/home/mssever/Desktop/blg348e/project/scripts/phase2/bowtie/sarek/samplesheet_strelka2.csv'
+    
+    // Reference genome
+    genome = 'GATK.GRCh38'
+    fasta = '/home/mssever/Desktop/blg348e/project/data/reference/Homo_sapiens_assembly38.fasta'
+    
+    // Variant calling
+    tools = 'strelka'
+    variant_calling = true
+    
+    // Output
+    outdir = '/home/mssever/Desktop/blg348e/project/outputs/phase2/bowtie/sarek/strelka2'
+    
+    // Skip steps we don't need (since we have BAM already)
+    skip_tools = 'fastqc,samtools,mosdepth'
+    
+    // Resource limits - OPTIMIZED for speed
+    // Using 12 CPUs (leaving 4 for system) - allows parallel processing of intervals
+    max_cpus = 12
+    max_memory = '16.GB'
+}
